@@ -12,14 +12,6 @@ import {
   InvoiceStatus,
   UserRole
 } from '../types';
-import {
-  INITIAL_LEADS,
-  INITIAL_QUOTES,
-  INITIAL_JOBS,
-  INITIAL_TECHNICIANS,
-  INITIAL_CUSTOMERS,
-  INITIAL_INVOICES
-} from '../mockData';
 
 export interface DatabaseHealth {
   isConnected: boolean;
@@ -661,8 +653,8 @@ export async function getTechnicians(): Promise<Technician[]> {
       .eq('role', 'technician')
       .order('created_at', { ascending: false });
 
-    if (!error && data && data.length > 0) {
-      const dbTechs: Technician[] = data.map((p) => {
+    if (!error && data) {
+      return data.map((p) => {
         const isApproved = p.technician_status === 'approved';
         return {
           id: p.id,
@@ -683,16 +675,43 @@ export async function getTechnicians(): Promise<Technician[]> {
           account_status: p.account_status || 'active'
         };
       });
-
-      // Merge with initial fallback seed technicians
-      const existingIds = new Set(dbTechs.map((t) => t.id));
-      const remainingInitial = INITIAL_TECHNICIANS.filter((t) => !existingIds.has(t.id));
-      return [...dbTechs, ...remainingInitial];
     }
   } catch (err) {
     console.warn('getTechnicians Supabase error:', err);
   }
-  return INITIAL_TECHNICIANS;
+  return [];
+}
+
+export async function getCustomers(): Promise<Customer[]> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'customer')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((p) => ({
+        id: p.id,
+        name: p.full_name || 'Client Account',
+        company: p.company || undefined,
+        email: p.email || '',
+        phone: p.phone || '',
+        address: 'Pakistan Service Area',
+        location: 'Pakistan',
+        activeJobsCount: 0,
+        totalSpent: 0,
+        totalSpend: 0,
+        totalJobs: 0,
+        lastServiceDate: p.created_at ? new Date(p.created_at).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
+        status: p.account_status === 'suspended' ? 'Inactive' : 'Active',
+        notes: `Registered client profile`
+      }));
+    }
+  } catch (err) {
+    console.warn('getCustomers Supabase error:', err);
+  }
+  return [];
 }
 
 export async function updateTechnicianApprovalStatus(
@@ -856,43 +875,5 @@ export async function logActivity(
     });
   } catch (err) {
     console.warn('Failed to log activity:', err);
-  }
-}
-
-// -----------------------------------------------------------------------------
-// DEMO DATA SEEDING
-// -----------------------------------------------------------------------------
-export async function seedDemoDataToSupabase(
-  userId: string
-): Promise<{ success: boolean; message: string }> {
-  try {
-    // Seed initial leads for the current user if tables exist
-    for (const lead of INITIAL_LEADS.slice(0, 3)) {
-      await supabase.from('leads').insert([
-        {
-          customer_id: userId,
-          title: `${lead.serviceType} - ${lead.customerName}`,
-          service_type: lead.serviceType,
-          status: lead.status === 'New' ? 'new' : lead.status === 'Quoted' ? 'quoted' : 'in_review',
-          priority: 'normal',
-          estimated_value: lead.estimatedValue,
-          location: lead.location,
-          address: lead.address,
-          description: lead.description,
-          customer_notes: `Customer: ${lead.customerName} | Phone: ${lead.phone}`
-        }
-      ]);
-    }
-
-    return {
-      success: true,
-      message: 'Sample workflow data seeded into Supabase successfully!'
-    };
-  } catch (err: any) {
-    console.error('Failed to seed demo data to Supabase:', err);
-    return {
-      success: false,
-      message: err?.message || 'Failed to seed demo data to Supabase.'
-    };
   }
 }

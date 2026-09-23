@@ -13,16 +13,6 @@ import {
   QuoteStatus,
   JobStatus
 } from './types';
-import {
-  INITIAL_LEADS,
-  INITIAL_QUOTES,
-  INITIAL_JOBS,
-  INITIAL_TECHNICIANS,
-  INITIAL_CUSTOMERS,
-  INITIAL_INVOICES,
-  INITIAL_NOTIFICATIONS
-} from './mockData';
-
 // Layout, Landing & Auth
 import { LandingPage } from './components/landing/LandingPage';
 import { SignInPage } from './components/auth/SignInPage';
@@ -46,6 +36,7 @@ import {
   updateJobStatus,
   addWorkEvidence,
   getTechnicians,
+  getCustomers,
   updateTechnicianApprovalStatus,
   getInvoices,
   createInvoice,
@@ -138,14 +129,14 @@ function LeadToQuoteApp() {
     }
   }, [user, profile, activeTab, isLoading, userRole]);
 
-  // Core Data States (Initialized from Live Supabase Database Layer with Resilient Fallback)
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
-  const [quotes, setQuotes] = useState<Quote[]>(INITIAL_QUOTES);
-  const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
-  const [technicians, setTechnicians] = useState<Technician[]>(INITIAL_TECHNICIANS);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
-  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
+  // Core Data States (Initialized from Live Supabase Database Layer - Pure Real Data)
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDataSyncing, setIsDataSyncing] = useState<boolean>(false);
 
@@ -153,18 +144,21 @@ function LeadToQuoteApp() {
   const reloadAllData = async () => {
     setIsDataSyncing(true);
     try {
-      const [liveLeads, liveQuotes, liveJobs, liveTechs] = await Promise.all([
+      const [liveLeads, liveQuotes, liveJobs, liveTechs, liveCusts] = await Promise.all([
         getLeads(),
         getQuotes(),
         getJobs(),
-        getTechnicians()
+        getTechnicians(),
+        getCustomers()
       ]);
-      if (liveLeads && liveLeads.length > 0) setLeads(liveLeads);
-      if (liveQuotes && liveQuotes.length > 0) setQuotes(liveQuotes);
-      if (liveJobs && liveJobs.length > 0) setJobs(liveJobs);
-      if (liveTechs && liveTechs.length > 0) setTechnicians(liveTechs);
-      const liveInvoices = await getInvoices(liveJobs && liveJobs.length > 0 ? liveJobs : jobs);
-      if (liveInvoices && liveInvoices.length > 0) setInvoices(liveInvoices);
+      setLeads(liveLeads || []);
+      setQuotes(liveQuotes || []);
+      setJobs(liveJobs || []);
+      setTechnicians(liveTechs || []);
+      setCustomers(liveCusts || []);
+      const currentJobs = liveJobs || [];
+      const liveInvoices = await getInvoices(currentJobs);
+      setInvoices(liveInvoices || []);
     } catch (err) {
       console.warn('Live data sync notice:', err);
     } finally {
@@ -635,20 +629,6 @@ function LeadToQuoteApp() {
   };
 
   // -------------------------------------------------------------
-  // DEMO RESET HANDLER
-  // -------------------------------------------------------------
-  const handleResetDemoData = () => {
-    setLeads(INITIAL_LEADS);
-    setQuotes(INITIAL_QUOTES);
-    setJobs(INITIAL_JOBS);
-    setTechnicians(INITIAL_TECHNICIANS);
-    setCustomers(INITIAL_CUSTOMERS);
-    setInvoices(INITIAL_INVOICES);
-    setNotifications(INITIAL_NOTIFICATIONS);
-    addToast('Demo State Reset', 'Restored initial static operational mock dataset.', 'info');
-  };
-
-  // -------------------------------------------------------------
   // RENDER APP SHELL
   // Global Session Loading State
   if (isLoading) {
@@ -921,7 +901,6 @@ function LeadToQuoteApp() {
 
               {activeTab === 'settings' && (
                 <SettingsView
-                  onResetDemoData={handleResetDemoData}
                   onShowToast={addToast}
                 />
               )}

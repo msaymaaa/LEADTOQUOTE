@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lead, Quote, Job, Invoice } from '../../types';
 import { ResponsiveChartContainer } from '../common/ResponsiveChartContainer';
+import { formatPKR } from '../../lib/currency';
 
 interface PipelineFlowChartProps {
   leads: Lead[];
@@ -102,7 +103,7 @@ export const PipelineFlowChart: React.FC<PipelineFlowChartProps> = ({
     rows: stages.map((s) => [
       s.name,
       s.count,
-      `$${s.value.toLocaleString()}`,
+      formatPKR(s.value),
       `${totalIntake > 0 ? Math.round((s.count / Math.max(totalIntake, 1)) * 100) : 0}%`
     ])
   };

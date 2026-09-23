@@ -9,7 +9,6 @@ import {
   FileText,
   Bell,
   Shield,
-  RotateCcw,
   Save,
   Check,
   Percent,
@@ -34,7 +33,7 @@ import {
 } from 'lucide-react';
 
 interface SettingsViewProps {
-  onResetDemoData: () => void;
+  onResetDemoData?: () => void;
   onShowToast: (title: string, message: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
 }
 
@@ -227,10 +226,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const roles = [
-    { name: 'Owner (Business Administrator)', users: 1, permissions: 'Full platform access, billing, user role assignments, technician approvals' },
-    { name: 'Staff (Operations & Dispatch)', users: 3, permissions: 'Lead ingestion, quotation generation, job dispatch, invoice management' },
-    { name: 'Technician (Field Specialist)', users: 4, permissions: 'Assigned jobs, work status updates, photo evidence uploads' },
-    { name: 'Customer (Client Portal)', users: 12, permissions: 'Request quotes, approve/decline proposals, view work status and invoices' }
+    {
+      name: 'Owner (Business Administrator)',
+      users: adminUsers.length > 0 ? adminUsers.filter((u) => u.role === 'owner').length : (isOwner ? 1 : 0),
+      permissions: 'Full platform access, billing, user role assignments, technician approvals'
+    },
+    {
+      name: 'Staff (Operations & Dispatch)',
+      users: adminUsers.length > 0 ? adminUsers.filter((u) => u.role === 'staff').length : 0,
+      permissions: 'Lead ingestion, quotation generation, job dispatch, invoice management'
+    },
+    {
+      name: 'Technician (Field Specialist)',
+      users: adminUsers.length > 0 ? adminUsers.filter((u) => u.role === 'technician').length : 0,
+      permissions: 'Assigned jobs, work status updates, photo evidence uploads'
+    },
+    {
+      name: 'Customer (Client Portal)',
+      users: adminUsers.length > 0 ? adminUsers.filter((u) => u.role === 'customer').length : 0,
+      permissions: 'Request quotes, approve/decline proposals, view work status and invoices'
+    }
   ];
 
   return (
@@ -239,15 +254,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         title="Platform Settings"
         subtitle="Configure enterprise parameters, quotation defaults, and dispatch rules."
         badge="Config Engine"
-      >
-        <button
-          onClick={onResetDemoData}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[#FF647C] bg-[#FF647C]/10 hover:bg-[#FF647C]/20 border border-[#FF647C]/30 transition-all cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset Demo Data</span>
-        </button>
-      </PageHeader>
+      />
 
       {/* Authenticated User Profile Section connected to Supabase */}
       <div className="p-6 rounded-2xl bg-[#0D1424] border border-[#6C63FF]/30 space-y-5 shadow-lg shadow-[#080D18]/50">

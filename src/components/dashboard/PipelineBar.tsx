@@ -29,14 +29,14 @@ export const PipelineBar: React.FC<PipelineBarProps> = ({
   const paidCount = invoices.filter((i) => i.status === 'Paid').length;
 
   const pipelineStages = [
-    { name: 'New', count: leads.length > 0 ? newCount : 6, color: '#6C63FF' },
-    { name: 'Contacted', count: leads.length > 0 ? contactedCount : 5, color: '#8B5CF6' },
-    { name: 'Qualified', count: leads.length > 0 ? qualifiedCount : 13, color: '#39D9FF' },
-    { name: 'Quoted', count: quotes.length > 0 ? quotedCount : 8, color: '#00F0FF' },
-    { name: 'Approved', count: quotes.length > 0 ? approvedCount : 7, color: '#35D07F' },
-    { name: 'In Progress', count: jobs.length > 0 ? inProgressCount : 12, color: '#F5B942' },
-    { name: 'Completed', count: jobs.length > 0 ? completedCount : 18, color: '#38BDF8' },
-    { name: 'Paid', count: invoices.length > 0 ? paidCount : 42, color: '#35D07F' }
+    { name: 'New', count: newCount, color: '#6C63FF' },
+    { name: 'Contacted', count: contactedCount, color: '#8B5CF6' },
+    { name: 'Qualified', count: qualifiedCount, color: '#39D9FF' },
+    { name: 'Quoted', count: quotedCount, color: '#00F0FF' },
+    { name: 'Approved', count: approvedCount, color: '#35D07F' },
+    { name: 'In Progress', count: inProgressCount, color: '#F5B942' },
+    { name: 'Completed', count: completedCount, color: '#38BDF8' },
+    { name: 'Paid', count: paidCount, color: '#35D07F' }
   ];
 
   return (

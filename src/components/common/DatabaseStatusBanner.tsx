@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Database, CheckCircle2, AlertTriangle, Copy, Check, RefreshCw, Sparkles } from 'lucide-react';
-import { checkDatabaseHealth, DatabaseHealth, seedDemoDataToSupabase } from '../../lib/database';
-import { useAuth } from '../../context/AuthContext';
+import { Database, Copy, Check, RefreshCw } from 'lucide-react';
+import { checkDatabaseHealth, DatabaseHealth } from '../../lib/database';
 
 export const DatabaseStatusBanner: React.FC<{
   onRefreshData?: () => void;
 }> = ({ onRefreshData }) => {
-  const { user } = useAuth();
   const [health, setHealth] = useState<DatabaseHealth | null>(null);
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [isSeeding, setIsSeeding] = useState<boolean>(false);
-  const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   const runHealthCheck = async () => {
@@ -56,23 +52,6 @@ export const DatabaseStatusBanner: React.FC<{
     }
   };
 
-  const handleSeedData = async () => {
-    if (!user) return;
-    setIsSeeding(true);
-    setSeedMessage(null);
-    try {
-      const res = await seedDemoDataToSupabase(user.id);
-      setSeedMessage(res.message);
-      if (res.success && onRefreshData) {
-        onRefreshData();
-      }
-    } catch (err: any) {
-      setSeedMessage(err?.message || 'Seeding failed');
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   if (!health || isDismissed) return null;
 
   if (health.tablesExist) {
@@ -87,16 +66,10 @@ export const DatabaseStatusBanner: React.FC<{
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleSeedData}
-            disabled={isSeeding}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00E599]/20 hover:bg-[#00E599]/30 text-[#00E599] font-medium transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            {isSeeding ? 'Seeding...' : 'Seed Sample Data'}
-          </button>
-          <button
             onClick={() => setIsDismissed(true)}
-            className="text-[#91A0B8] hover:text-[#F4F7FB] transition-colors"
+            className="text-[#91A0B8] hover:text-[#F4F7FB] transition-colors p-1"
+            title="Dismiss notice"
+            aria-label="Dismiss banner"
           >
             ✕
           </button>
@@ -126,11 +99,6 @@ export const DatabaseStatusBanner: React.FC<{
               </code>{' '}
               in your Supabase SQL Editor.
             </p>
-            {seedMessage && (
-              <p className="mt-2 text-[#00E599] font-medium bg-[#00E599]/10 p-2 rounded-lg border border-[#00E599]/20">
-                {seedMessage}
-              </p>
-            )}
           </div>
         </div>
 
