@@ -1,0 +1,6 @@
+{
+  "name": "LEADTOQUOTE",
+  "description": "From First Lead to Final Payment. Operations platform connecting customer requests, quotes, technician dispatch, job tracking, and payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
